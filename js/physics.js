@@ -6,7 +6,7 @@ let engine, world;
 let walls = [];
 
 export function initPhysics() {
-  engine = Engine.create();
+  engine = Engine.create({ enableSleeping: true });
   engine.gravity.y = 1.0;
   world = engine.world;
   rebuildWalls();

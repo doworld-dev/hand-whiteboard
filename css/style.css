@@ -93,3 +93,7 @@ html, body {
 }
 .modal__content h2 { margin-top: 0; }
 .modal__content ul { line-height: 2; padding-left: 20px; }
+
+[data-theme="dark"] #status { background: #2a2a30; }
+[data-theme="dark"] #board { background: #1a1a1e; }
+[data-theme="light"] #board { background: #f4f4f7; }
