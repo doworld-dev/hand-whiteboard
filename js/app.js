@@ -3,7 +3,7 @@ import { classify } from './gestures.js';
 import {
   initPhysics, step, rebuildWalls, addBody, allBodies, clearAll,
   findBodyAt, attachGrab, updateGrab, releaseGrab, getGrabbedBody,
-  scaleBody, rotateBody, setGravity, isGravityOn,
+  scaleBody, rotateBody, setGravity, isGravityOn, onCollision,
 } from './physics.js';
 import { createSticky, createShape, createImage, presetBoard } from './items.js';
 import { initUI, showHelp, toggleTheme, pickImage } from './ui.js';
@@ -31,6 +31,17 @@ let handsState = { left: null, right: null };
 async function main() {
   initPhysics();
   resize();
+
+  onCollision((pair) => {
+    if (pair.bodyA.isStatic || pair.bodyB.isStatic) return;
+    const vA = pair.bodyA.velocity;
+    const vB = pair.bodyB.velocity;
+    const relSpeed = Math.hypot(vA.x - vB.x, vA.y - vB.y);
+    if (relSpeed < 2) return;
+    const p = pair.collision?.supports?.[0] ?? pair.bodyA.position;
+    emitSpark(p.x, p.y, Math.min(20, Math.floor(relSpeed * 2)), '#ffffff');
+  });
+
   for (const b of presetBoard()) addBody(b);
 
   initUI({
