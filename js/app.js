@@ -1,6 +1,7 @@
 import { startVision, onHands } from './vision.js';
 import { classify } from './gestures.js';
 import { initPhysics, step, rebuildWalls, addBody, allBodies } from './physics.js';
+import { presetBoard } from './items.js';
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -25,12 +26,7 @@ async function main() {
   initPhysics();
   resize();
 
-  const box = Matter.Bodies.rectangle(
-    window.innerWidth / 2, 100, 80, 80,
-    { restitution: 0.2, friction: 0.4, frictionAir: 0.02 }
-  );
-  box.custom = { kind: 'shape', color: '#ffd166' };
-  addBody(box);
+  for (const b of presetBoard()) addBody(b);
 
   try {
     setStatus('카메라 요청 중…', 'waiting');
