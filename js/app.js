@@ -1,11 +1,12 @@
 import { startVision, onHands } from './vision.js';
 import { classify } from './gestures.js';
 import {
-  initPhysics, step, rebuildWalls, addBody, allBodies,
+  initPhysics, step, rebuildWalls, addBody, allBodies, clearAll,
   findBodyAt, attachGrab, updateGrab, releaseGrab, getGrabbedBody,
   scaleBody, rotateBody, setGravity, isGravityOn,
 } from './physics.js';
-import { presetBoard } from './items.js';
+import { createSticky, createShape, createImage, presetBoard } from './items.js';
+import { initUI, showHelp, toggleTheme, pickImage } from './ui.js';
 import { drawBody, drawCursor, stepParticles, drawParticles, emitSpark } from './render.js';
 
 const canvas = document.getElementById('board');
@@ -31,6 +32,19 @@ async function main() {
   initPhysics();
   resize();
   for (const b of presetBoard()) addBody(b);
+
+  initUI({
+    'add-note': () => addBody(createSticky(canvas.width / 2, 120)),
+    'add-shape': () => addBody(createShape(canvas.width / 2, 120)),
+    'add-image': async () => {
+      const url = await pickImage();
+      if (url) addBody(createImage(canvas.width / 2, 120, url));
+    },
+    'toggle-theme': toggleTheme,
+    'clear': () => clearAll(),
+    'help': showHelp,
+  });
+
   try {
     setStatus('카메라 요청 중…', 'waiting');
     await startVision(video);
