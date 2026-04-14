@@ -111,3 +111,17 @@ export function onCollision(cb) {
     for (const pair of e.pairs) cb(pair);
   });
 }
+
+export function scaleBody(body, factor) {
+  const w = (body.bounds.max.x - body.bounds.min.x);
+  if ((w < 40 && factor < 1) || (w > 400 && factor > 1)) return;
+  Body.scale(body, factor, factor);
+  if (body.custom?.w) {
+    body.custom.w *= factor;
+    body.custom.h *= factor;
+  }
+}
+
+export function rotateBody(body, deltaAngle) {
+  Body.rotate(body, deltaAngle);
+}

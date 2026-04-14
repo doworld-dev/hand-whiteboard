@@ -3,6 +3,7 @@ import { classify } from './gestures.js';
 import {
   initPhysics, step, rebuildWalls, addBody, allBodies,
   findBodyAt, attachGrab, updateGrab, releaseGrab, getGrabbedBody,
+  scaleBody, rotateBody,
 } from './physics.js';
 import { presetBoard } from './items.js';
 import { drawBody, drawCursor, stepParticles, drawParticles, emitSpark } from './render.js';
@@ -66,6 +67,46 @@ function handleGrab(handKey, hand) {
   prevPinch[handKey] = hand.pinch;
 }
 
+let prevTwoHand = null;
+
+function handleTwoHand(g) {
+  if (!(g.left && g.right && g.left.pinch && g.right.pinch)) {
+    prevTwoHand = null;
+    return;
+  }
+  const lx = g.left.pos.x * canvas.width;
+  const ly = g.left.pos.y * canvas.height;
+  const rx = g.right.pos.x * canvas.width;
+  const ry = g.right.pos.y * canvas.height;
+
+  const dx = rx - lx, dy = ry - ly;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx);
+
+  const mx = (lx + rx) / 2, my = (ly + ry) / 2;
+  const body = findBodyAt(mx, my);
+
+  if (!prevTwoHand) {
+    if (getGrabbedBody('left') || getGrabbedBody('right')) {
+      releaseGrab('left'); releaseGrab('right');
+    }
+    prevTwoHand = { dist, angle, target: body };
+    return;
+  }
+
+  const target = prevTwoHand.target;
+  if (!target) { prevTwoHand = { dist, angle, target: null }; return; }
+
+  const scaleFactor = dist / prevTwoHand.dist;
+  if (Math.abs(scaleFactor - 1) > 0.005) scaleBody(target, scaleFactor);
+
+  const angleDelta = angle - prevTwoHand.angle;
+  if (Math.abs(angleDelta) > 0.01) rotateBody(target, angleDelta);
+
+  prevTwoHand.dist = dist;
+  prevTwoHand.angle = angle;
+}
+
 let lastT = performance.now();
 function loop() {
   const now = performance.now();
@@ -73,8 +114,16 @@ function loop() {
   lastT = now;
 
   const g = classify(handsState);
-  handleGrab('left', g.left);
-  handleGrab('right', g.right);
+
+  if (g.bothPinch) {
+    handleTwoHand(g);
+    prevPinch.left = true;
+    prevPinch.right = true;
+  } else {
+    prevTwoHand = null;
+    handleGrab('left', g.left);
+    handleGrab('right', g.right);
+  }
 
   step(dt);
   stepParticles(dt);
@@ -84,7 +133,7 @@ function loop() {
   const grabbedL = getGrabbedBody('left');
   const grabbedR = getGrabbedBody('right');
   for (const b of allBodies()) {
-    b.__highlight = (b === grabbedL || b === grabbedR);
+    b.__highlight = (b === grabbedL || b === grabbedR || b === prevTwoHand?.target);
     drawBody(ctx, b);
   }
   drawParticles(ctx);
