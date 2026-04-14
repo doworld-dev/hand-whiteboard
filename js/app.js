@@ -27,6 +27,7 @@ function setStatus(text, cls) {
 }
 
 let handsState = { left: null, right: null };
+let lastHandSeen = 0;
 
 async function main() {
   initPhysics();
@@ -60,10 +61,16 @@ async function main() {
     setStatus('카메라 요청 중…', 'waiting');
     await startVision(video);
     setStatus('손을 보여주세요', 'waiting');
-    onHands((state) => { handsState = state; });
+    onHands((state) => {
+      handsState = state;
+      if (state.left || state.right) lastHandSeen = performance.now();
+    });
   } catch (err) {
     console.error(err);
-    setStatus('카메라 접근 실패: ' + err.message, 'error');
+    const msg = err.name === 'NotAllowedError'
+      ? '카메라 권한이 거부되었습니다. 브라우저 설정에서 허용 후 새로고침하세요.'
+      : '카메라 초기화 실패: ' + (err.message ?? err);
+    setStatus(msg, 'error');
   }
 }
 
@@ -139,6 +146,13 @@ function loop() {
   lastT = now;
 
   const g = classify(handsState);
+
+  const nowMs = performance.now();
+  if (nowMs - lastHandSeen > 5000) {
+    setStatus('손이 보이지 않습니다', 'waiting');
+    releaseGrab('left');
+    releaseGrab('right');
+  }
 
   if (g.gravityToggle) {
     setGravity(!isGravityOn());
