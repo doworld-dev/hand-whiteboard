@@ -3,6 +3,10 @@
 웹캠 손 제스처로 조작하는 물리 기반 인터랙티브 화이트보드.
 MediaPipe Hands + Matter.js + 순수 Canvas 2D, 빌드 없이 실행.
 
+### 🚀 [바로 체험하기 → doworld-dev.github.io/hand-whiteboard](https://doworld-dev.github.io/hand-whiteboard/)
+
+카메라 허용만 하면 됩니다. 설치 · 가입 없음.
+
 ## 제스처
 
 | 제스처 | 동작 |
