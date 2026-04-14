@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hand Whiteboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-theme="light">
+  <video id="cam" autoplay playsinline style="display:none"></video>
+  <canvas id="board"></canvas>
+
+  <div id="status" class="status status--waiting">Initializing…</div>
+
+  <div id="toolbar">
+    <button data-action="add-note">＋ 노트</button>
+    <button data-action="add-image">＋ 이미지</button>
+    <button data-action="add-shape">＋ 도형</button>
+    <button data-action="toggle-theme">테마</button>
+    <button data-action="clear">전체 삭제</button>
+    <button data-action="help">?</button>
+  </div>
+
+  <div id="help-modal" class="modal hidden">
+    <div class="modal__content">
+      <h2>제스처 가이드</h2>
+      <ul id="help-list"></ul>
+      <button data-action="close-help">닫기</button>
+    </div>
+  </div>
+
+  <input type="file" id="image-input" accept="image/*" style="display:none" />
+
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
