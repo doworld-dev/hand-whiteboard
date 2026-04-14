@@ -1,4 +1,5 @@
 import { startVision, onHands } from './vision.js';
+import { classify } from './gestures.js';
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -31,26 +32,29 @@ async function main() {
   }
 }
 
-function drawLandmarks(hand, color) {
+function drawCursor(hand, color) {
   if (!hand) return;
-  ctx.fillStyle = color;
-  for (const pt of hand.landmarks) {
-    const x = (1 - pt.x) * canvas.width;
-    const y = pt.y * canvas.height;
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  const x = hand.pos.x * canvas.width;
+  const y = hand.pos.y * canvas.height;
+  ctx.fillStyle = hand.pinch ? color : 'transparent';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, hand.pinch ? 14 : 20, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
 }
 
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const anyHand = handsState.left || handsState.right;
-  if (anyHand) setStatus('손 인식됨', 'ok');
+  const g = classify(handsState);
 
-  drawLandmarks(handsState.left, '#2d8cf0');
-  drawLandmarks(handsState.right, '#ff6b6b');
+  if (g.left || g.right) setStatus('손 인식됨', 'ok');
+  if (g.gravityToggle) console.log('[gesture] gravity toggle');
+
+  drawCursor(g.left, '#2d8cf0');
+  drawCursor(g.right, '#ff6b6b');
 
   requestAnimationFrame(loop);
 }
