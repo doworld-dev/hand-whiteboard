@@ -3,7 +3,7 @@ import { classify } from './gestures.js';
 import {
   initPhysics, step, rebuildWalls, addBody, allBodies,
   findBodyAt, attachGrab, updateGrab, releaseGrab, getGrabbedBody,
-  scaleBody, rotateBody,
+  scaleBody, rotateBody, setGravity, isGravityOn,
 } from './physics.js';
 import { presetBoard } from './items.js';
 import { drawBody, drawCursor, stepParticles, drawParticles, emitSpark } from './render.js';
@@ -114,6 +114,11 @@ function loop() {
   lastT = now;
 
   const g = classify(handsState);
+
+  if (g.gravityToggle) {
+    setGravity(!isGravityOn());
+    emitSpark(canvas.width / 2, canvas.height / 2, 30, '#2d8cf0');
+  }
 
   if (g.bothPinch) {
     handleTwoHand(g);
