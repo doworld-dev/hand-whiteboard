@@ -83,15 +83,23 @@ export function attachGrab(handKey, body, x, y) {
 
 export function updateGrab(handKey, x, y) {
   const c = grabs[handKey];
-  if (c) { c.pointA.x = x; c.pointA.y = y; }
+  if (c) {
+    c.__prevPoint = { x: c.pointA.x, y: c.pointA.y };
+    c.pointA.x = x;
+    c.pointA.y = y;
+  }
 }
 
 export function releaseGrab(handKey) {
   const c = grabs[handKey];
-  if (c) {
-    World.remove(world, c);
-    grabs[handKey] = null;
-  }
+  if (!c) return;
+  const body = c.bodyB;
+  const prev = c.__prevPoint ?? c.pointA;
+  const vx = (c.pointA.x - prev.x) * 0.4;
+  const vy = (c.pointA.y - prev.y) * 0.4;
+  World.remove(world, c);
+  grabs[handKey] = null;
+  Body.setVelocity(body, { x: vx, y: vy });
 }
 
 export function getGrabbedBody(handKey) {
