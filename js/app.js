@@ -2,6 +2,7 @@ import { startVision, onHands } from './vision.js';
 import { classify } from './gestures.js';
 import { initPhysics, step, rebuildWalls, addBody, allBodies } from './physics.js';
 import { presetBoard } from './items.js';
+import { drawBody, drawCursor, stepParticles, drawParticles } from './render.js';
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -25,9 +26,7 @@ let handsState = { left: null, right: null };
 async function main() {
   initPhysics();
   resize();
-
   for (const b of presetBoard()) addBody(b);
-
   try {
     setStatus('카메라 요청 중…', 'waiting');
     await startVision(video);
@@ -39,30 +38,6 @@ async function main() {
   }
 }
 
-function drawCursor(hand, color) {
-  if (!hand) return;
-  const x = hand.pos.x * canvas.width;
-  const y = hand.pos.y * canvas.height;
-  ctx.fillStyle = hand.pinch ? color : 'transparent';
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(x, y, hand.pinch ? 14 : 20, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawBody(b) {
-  ctx.save();
-  ctx.translate(b.position.x, b.position.y);
-  ctx.rotate(b.angle);
-  ctx.fillStyle = b.custom?.color ?? '#ccc';
-  const w = b.bounds.max.x - b.bounds.min.x;
-  const h = b.bounds.max.y - b.bounds.min.y;
-  ctx.fillRect(-w / 2, -h / 2, w, h);
-  ctx.restore();
-}
-
 let lastT = performance.now();
 function loop() {
   const now = performance.now();
@@ -70,14 +45,17 @@ function loop() {
   lastT = now;
 
   step(dt);
+  stepParticles(dt);
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const b of allBodies()) drawBody(b);
+  for (const b of allBodies()) drawBody(ctx, b);
+  drawParticles(ctx);
 
   const g = classify(handsState);
   if (g.left || g.right) setStatus('손 인식됨', 'ok');
-  drawCursor(g.left, '#2d8cf0');
-  drawCursor(g.right, '#ff6b6b');
+  drawCursor(ctx, g.left, '#2d8cf0', canvas);
+  drawCursor(ctx, g.right, '#ff6b6b', canvas);
 
   requestAnimationFrame(loop);
 }
